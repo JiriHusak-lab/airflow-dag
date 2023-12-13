@@ -19,6 +19,12 @@ steps:
 - script: echo Hello, world2!
   displayName: 'Run a one-line script'
 
+- task: oc-cmd@3
+  inputs:
+    connectionType: 'OpenShift Connection Service'
+    openshiftService: 'Openshift'
+    cmd: 'get pods'
+
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
