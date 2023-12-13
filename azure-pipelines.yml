@@ -25,12 +25,14 @@ steps:
     openshiftService: 'Openshift'
     cmd: 'get pods'
 
+- task: oc-cmd@2
+  inputs:
+    connectionType: 'OpenShift Connection Service'
+    openshiftService: 'Openshift'
+    cmd: 'exec airflow-helm-scheduler-767576bb4c-r2plw -c scheduler -- ls -l /opt/airflow/dags'
+
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
-    - task: oc-cmd@2
-      inputs:
-        connectionType: 'OpenShift Connection Service'
-        openshiftService: 'Openshift'
-        cmd: 'exec airflow-helm-scheduler-767576bb4c-r2plw -c scheduler -- ls -l /opt/airflow/dags'
+ 
   displayName: 'Run a multi-line script'
