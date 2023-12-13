@@ -1,0 +1,130 @@
+image: ${DEVOPS_REGISTRY}/${KUBECTL_TEKTON_IMAGE}
+#Jiri Husak 12.12. 20243
+variables:
+  APP_NAME: ${CI_PROJECT_NAME}
+  APP_VERSION: x.x.x
+
+  KUBECONFIG: config.yaml
+  OCP_LOGIN_URL: https://api.crc.testing:6443
+  OCP_BASE_DOMAIN: apps-crc.testing
+
+  CIM_GROUP: ansr
+  
+  CIM_APP_PROJECT: ${APP_NAME}
+#  CIM_APP_PROJECT: ${APP_NAME}-ci
+#  TEST_APP_NAME: ${APP_NAME}
+
+  DEVOPS_REGISTRY: ${CI_REGISTRY}/${CIM_GROUP}/nrs-ds-ci
+#  APP_REGISTRY: ${CI_REGISTRY}/${CIM_GROUP}/${APP_NAME}
+  KUBECTL_TEKTON_IMAGE: kubectl-tekton
+
+  CI_REGISTRY_USER: ${GITLAB_USER}
+  CI_REGISTRY_PASSWORD: ${GITLAB_PASSWORD}
+  SCHEDULER_POD: airflow-helm-scheduler-767576bb4c-r2plw
+
+  TMP_PROJECT_FILE: ./tmp_projects.txt
+
+
+before_script:
+  - | 
+    #!/bin/sh
+    echo "START BEFORE SCRIPT STAGE $CI_JOB_STAGE CHECK BRANCH BLOCK ======================================"
+    echo "RUN_NON_MASTER: $RUN_NON_MASTER"
+    if [ "$RUN_NON_MASTER" == "NO" ]
+    then
+         echo "STAGE $CI_JOB_STAGE is for MASTER_ONLY: $RUN_NON_MASTER_ONLY"
+         if [ "$CI_COMMIT_BRANCH" != "main" ] && [ "$CI_COMMIT_BRANCH" != "master" ]
+         then
+           echo "Skipping for non-master branch $CI_COMMIT_BRANCH"
+           exit 0
+         else
+           echo "Continue for master branch $CI_COMMIT_BRANCH"
+         fi
+    else
+         echo "STAGE $CI_JOB_STAGE can run for non master branches"
+    fi
+
+  - echo "CI_REGISTRY_USER:" ${CI_REGISTRY_USER}
+  - echo "CI_REGISTRY_PASSWORD:" ${CI_REGISTRY_PASSWORD}
+
+  - | 
+    if [ "${GITLAB_PASSWORD}" == "" ]
+    then
+        echo "ERROR: GITLAB CI Variable GITLAB_PASSWORD is empty!"
+        exit -1
+    fi
+    if [ "${OCP_PASSWORD}" == "" ]
+    then
+        echo "ERROR: GITLAB CI Variable OCP_PASSWORD is empty!"
+        exit -1
+    fi
+
+
+    export MREPOPATH=/builds/ansr/
+    #export MREPO=airflow-dags
+    export MREPO=$CI_PROJECT_NAME
+    echo " "
+
+
+  - | 
+    echo "oc login -u kubeadmin -p $OCP_PASSWORD --insecure-skip-tls-verify $OCP_LOGIN_URL"
+    oc login -u kubeadmin -p $OCP_PASSWORD --insecure-skip-tls-verify $OCP_LOGIN_URL
+    #  - oc login -u apikey -p $IBM_CLOUD_API_KEY --server=$OCP_LOGIN_URL
+    oc cluster-info
+
+
+    echo "  " 
+    echo "END BEFORE SCRIPT STAGE: $CI_JOB_STAGE  =================================="
+    echo "  " 
+
+stages:
+  - deploy-dags
+
+
+deploy-dags:
+  tags:
+    - openshift
+  stage: deploy-dags
+  variables:
+    RUN_NON_MASTER: "NO"
+  script:
+    - | 
+      #!/bin/sh
+      echo "  " 
+      echo "000 =====================  START STAGE       ($CI_JOB_STAGE) ====================="
+      set +o pipefail
+
+      pwd
+      id
+
+      echo "  " 
+      echo "  " 
+      ls -l
+      ls -l dags
+     
+      echo "  " 
+      echo "--------------------------------------------------------------" 
+      echo "oc version"
+      oc version
+
+      echo " "
+    
+      oc project airflow-helm
+
+      echo "  " 
+      echo "--------------------------------------------------------------" 
+     
+      echo "  " 
+      echo "--------------------------------------------------------------" 
+      echo "oc rsync ${MREPOPATH}/${MREPO}/dags ${SCHEDULER_POD}:/opt/airflow -c scheduler"
+      oc rsync ${MREPOPATH}/${MREPO}/dags ${SCHEDULER_POD}:/opt/airflow -c scheduler
+      #oc project
+
+      echo "  " 
+      echo "--------------------------------------------------------------" 
+      echo "oc exec ${SCHEDULER_POD} -c scheduler -- ls -l /opt/airflow/dags"
+      oc exec ${SCHEDULER_POD} -c scheduler -- ls -l /opt/airflow/dags
+      
+      echo " "
+      echo " "
+      echo "100 =====================  END STAGE       ($CI_JOB_STAGE) ====================="
