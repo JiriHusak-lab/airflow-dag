@@ -28,12 +28,14 @@ steps:
   inputs:
     connectionType: 'OpenShift Connection Service'
     openshiftService: 'OpenshiftCRCIP'
+    displayName: 'Run oc get pods'
     cmd: 'get pods'
 
 - task: oc-cmd@3
   inputs:
     connectionType: 'OpenShift Connection Service'
     openshiftService: 'OpenshiftCRCHost'
+    displayName: 'Run oc exec to list DAG files in OpenShift POD'
     cmd: 'exec airflow-helm-scheduler-767576bb4c-r2plw -c scheduler -- ls -l /opt/airflow/dags'
 
 - script: |
