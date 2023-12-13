@@ -25,7 +25,7 @@ steps:
     openshiftService: 'OpenshiftCRC'
     cmd: 'get pods'
 
-- task: oc-cmd@2
+- task: oc-cmd@3
   inputs:
     connectionType: 'OpenShift Connection Service'
     openshiftService: 'OpenshiftCRC'
