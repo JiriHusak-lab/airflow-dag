@@ -3,6 +3,9 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+variables:
+  scheduler_pod: 'airflow-helm-scheduler-767576bb4c-r2plw -c scheduler'
+
 trigger:
 - main
 
@@ -13,13 +16,15 @@ steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
 
+- script: echo Hello, world2!
+  displayName: 'Run a one-line script'
+
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
-    - task: oc-cmd@3
+    - task: oc-cmd@2
       inputs:
         connectionType: 'OpenShift Connection Service'
         openshiftService: 'Openshift'
-        version: '4.13'
-        cmd: 'oc exec airflow-helm-scheduler-767576bb4c-r2plw -c scheduler -- ls -l /opt/airflow/dags'
+        cmd: 'exec airflow-helm-scheduler-767576bb4c-r2plw -c scheduler -- ls -l /opt/airflow/dags'
   displayName: 'Run a multi-line script'
