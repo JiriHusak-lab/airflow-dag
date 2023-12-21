@@ -5,6 +5,28 @@
 
 variables:
   scheduler_pod: 'airflow-helm-scheduler-767576bb4c-r2plw -c scheduler'
+  NAMESPACE_HELM: airflow-helm
+  NAMESPACE_STACK: airflow-stackable
+  SCHED_POD_CORE_HELM: airflow-helm-dev-scheduler-
+  SCHED_POD_CORE_STACK: airflow-scheduler-default-0
+  AIRFLOW_HOME_HELM: opt
+  AIRFLOW_HOME_STACK: stackable
+  CONTAINER_HELM: scheduler
+  CONTAINER_SCHED: airflow
+
+  KUBECONFIG: config.yaml
+  OCP_LOGIN_URL: https://api.crc.testing:6443
+  OCP_BASE_DOMAIN: apps-crc.testing
+
+  CIM_GROUP: ansr
+  
+  #CIM_APP_PROJECT: ${APP_NAME}
+  #DEVOPS_REGISTRY: ${CI_REGISTRY}/${CIM_GROUP}/nrs-ds-ci
+  KUBECTL_TEKTON_IMAGE: kubectl-tekton
+
+  CI_REGISTRY_USER: ${GITLAB_USER}
+  CI_REGISTRY_PASSWORD: ${GITLAB_PASSWORD}
+
 
 trigger:
 - main
